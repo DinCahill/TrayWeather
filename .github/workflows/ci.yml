@@ -1,0 +1,57 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    strategy:
+      fail-fast: false
+      matrix:
+        sys: [ MINGW64, MINGW32, UCRT64, CLANG64 ]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{matrix.sys}}
+          update: true
+          pacboy: toolchain:p cmake:p ninja:p ntldd-git:p qtwebkit:p qt5-charts:p qt5-tools:p qt5-winextras:p qt5-svg:p
+      - name: CI-Build
+        run: |
+          echo 'Running in MSYS2!'
+          mkdir build
+          cd build
+          cmake ..
+          ninja
+          echo "Searching for linked DLLs..."
+          for f in $(ntldd.exe -R TrayWeather.exe | grep "bin\\\.*\.dll" -o | cut -c5- | cat - <(echo Qt5Svg.dll)); do cp "${MSYSTEM_PREFIX}/bin/${f}" .; done
+          echo "Adding files from qt5/share..."
+          mkdir platforms
+          cp "${MSYSTEM_PREFIX}/share/qt5/plugins/platforms/qwindows.dll" "platforms/"
+          mkdir imageformats
+          cp "${MSYSTEM_PREFIX}/share/qt5/plugins/imageformats/qsvg.dll" "imageformats/"
+      - name: Building the installer
+        run: |
+          cd build
+          "%programfiles(x86)%\Inno Setup 6\iscc.exe" "script.iss"
+        shell: cmd
+      - name: Upload the installer as an artifact
+        uses: actions/upload-artifact@v2
+        #if: ${{ github.event_name != 'pull_request' }}
+        with:
+          path: "build/*Setup.exe"
+          name: wininstaller-innosetup ${{matrix.sys}}
