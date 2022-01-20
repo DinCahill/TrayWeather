@@ -3,14 +3,15 @@
 [Setup]
 AppName=Tray Weather
 AppVersion=@TRAYWEATHER_VERSION_MAJOR@.@TRAYWEATHER_VERSION_MINOR@.@TRAYWEATHER_VERSION_PATCH@
-DefaultDirName={pf64}\Tray Weather
+DefaultDirName={commonpf}\Tray Weather
 DefaultGroupName=Tray Weather
 OutputDir=@PROJECT_BINARY_DIR@
 AppComments=Tray Weather
 AppContact=Felix de las Pozas Alvarez
 AppCopyright=(c)2017-@CURRENT_YEAR@ Felix de las Pozas Alvarez
 AppPublisher=Felix de las Pozas Alvarez
-ArchitecturesAllowed=x64
+ArchitecturesAllowed=@ARCHITECTURES_ALLOWED@
+ArchitecturesInstallIn64BitMode=@ARCHITECTURES_ALLOWED@
 Compression=lzma2/ultra64
 CreateUninstallRegKey=yes
 Uninstallable=yes
@@ -29,8 +30,6 @@ WizardSmallImageFile=@CMAKE_SOURCE_DIR@/installer/smallimage.bmp
 [Files]
 Source: "TrayWeather.exe"; DestDir: "{app}"; Flags: ignoreversion; BeforeInstall: TaskKill('TrayWeather.exe')
 Source: "*.dll"; DestDir: "{app}";
-Source: "bearer/*.*"; DestDir: "{app}/bearer/";
-Source: "iconengines/*.*"; DestDir: "{app}/iconengines/";
 Source: "imageformats/*.*"; DestDir: "{app}/imageformats/";
 Source: "platforms/*.*"; DestDir: "{app}/platforms/";
 
